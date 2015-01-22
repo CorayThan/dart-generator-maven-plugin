@@ -1,0 +1,29 @@
+# Directories #
+
+target/
+
+######################
+# Windows
+######################
+ 
+# Windows image file caches
+Thumbs.db 
+ 
+# Folder config file
+Desktop.ini
+ 
+######################
+# Eclipse
+######################
+ 
+.project
+.classpath
+.settings/
+
+######################
+# Intellij
+######################
+
+.idea/
+*.iml
+*.iws
