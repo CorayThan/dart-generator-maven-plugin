@@ -25,6 +25,14 @@ public class DartField {
 		return "  " + this.type.getDartName(fieldClass) + " " + this.name + ";";
 	}
 
+	public String getFieldTypeString() {
+		return this.type.getDartName(fieldClass);
+	}
+
+	public List<String> getFieldImports() {
+		return null;
+	}
+
 	public static DartField getDartField(Field field) {
 		Class<?> clazz = field.getType();
 		String fieldName = field.getName();

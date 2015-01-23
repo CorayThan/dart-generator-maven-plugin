@@ -12,11 +12,13 @@ public class DartClass {
 	private final String className;
 	private final String libraryName;
 	private final List<DartField> fields;
+	private final String importLine;
 
-	public DartClass(Class<?> clazz) {
+	public DartClass(Class<?> clazz, String importLine) {
 		className = clazz.getSimpleName();
 		libraryName = convertToDartFileName(className);
 		fields = getDartFields(clazz);
+		this.importLine = importLine;
 	}
 
 	public String getClassName() {
@@ -29,6 +31,14 @@ public class DartClass {
 
 	public List<DartField> getFields() {
 		return fields;
+	}
+
+	public String getImportThisClass() {
+		return importLine + libraryName + ".dart';";
+	}
+
+	public String getImportLine() {
+		return importLine;
 	}
 
 	private String convertToDartFileName(String className) {
