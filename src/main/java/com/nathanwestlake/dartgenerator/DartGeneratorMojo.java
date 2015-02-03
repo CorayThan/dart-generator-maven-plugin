@@ -1,7 +1,7 @@
 package com.nathanwestlake.dartgenerator;
 
 import com.nathanwestlake.dartgenerator.generators.ClassGenerator;
-import com.nathanwestlake.dartgenerator.models.DartClass;
+import com.nathanwestlake.dartgenerator.models.DartEntity;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -12,7 +12,6 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,12 +20,6 @@ public class DartGeneratorMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     private MavenProject project;
-
-    @Parameter(required = true)
-    private List<String> includePackages;
-
-    @Parameter
-    private Set<String> excludeClasses;
 
     @Parameter(required = true)
     private File destination;
@@ -48,17 +41,18 @@ public class DartGeneratorMojo extends AbstractMojo {
         importLine = "import 'package:" + importLine + "/";
 
         try {
-            Set<Class<?>> modelClasses = classpathUtils.getModelClasses(project, includePackages, excludeClasses);
-            Map<String, DartClass> dartClasses = new HashMap<>();
+            Set<Class<?>> modelClasses = classpathUtils.getModelClasses(project);
+            Map<String, DartEntity> dartClasses = new HashMap<>();
             for (Class<?> model : modelClasses) {
-                DartClass dartClass = new DartClass(model, importLine);
-                if (dartClasses.containsKey(dartClass.getClassName())) {
-                    throw new MojoExecutionException("Classes must not have identical names. There are at least two classes " +
-                            "with the name: " + dartClass.getClassName());
-                }
-                dartClasses.put(dartClass.getClassName(), dartClass);
+                DartEntity dartClass = DartEntity.newInstance(model, importLine);
+
+	            if (dartClasses.containsKey(dartClass.getClassName())) {
+		            throw new MojoExecutionException("Classes must not have identical names. There are at least two classes " +
+				            "with the name: " + dartClass.getClassName());
+	            }
+	            dartClasses.put(dartClass.getClassName(), dartClass);
             }
-            for (DartClass dartClass : dartClasses.values()) {
+            for (DartEntity dartClass : dartClasses.values()) {
                 File dartFile = new File(destination, dartClass.getLibraryName() + ".dart");
                 FileUtils.writeLines(dartFile, classGenerator.generate(dartClass, dartClasses));
             }

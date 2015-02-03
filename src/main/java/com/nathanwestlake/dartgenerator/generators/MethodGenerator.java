@@ -2,6 +2,8 @@ package com.nathanwestlake.dartgenerator.generators;
 
 import com.google.common.collect.Lists;
 import com.nathanwestlake.dartgenerator.models.DartClass;
+import com.nathanwestlake.dartgenerator.models.DartField;
+import com.nathanwestlake.dartgenerator.models.DartType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,17 +27,30 @@ public class MethodGenerator {
 
 	public List<String> generateJsonConstructor(DartClass dartClass) {
 		List<String> fromJson = new ArrayList<>();
-		fromJson.add("  " + dartClass.getClassName() + ".fromJson(Map<String, dynamic> json):");
+		fromJson.add("  " + dartClass.getClassName() + ".fromJson(Map<String, dynamic> json, {Map models}){");
+		fromJson.add("    if (models == null) {");
+		fromJson.add("      models = {};");
+		fromJson.add("    }");
+		fromJson.add("    models[json['@id']] = this;");
 		fromJson.add("    this(");
 		for (int x = 0; x < dartClass.getFields().size(); x++) {
-			String name = dartClass.getFields().get(x).name;
-			String line = "      " + name + ": json['" + name + "']";
+			DartField dartField = dartClass.getFields().get(x);
+			String name = dartField.name;
+			String line;
+			if (dartField.type == DartType.CLASS) {
+				line = "      " + name + ": models[json['" + name + "']] != null ? models[json['" + name
+						+ "']] : new " + dartField.getFieldTypeString() + ".fromJson(json['" + name + "'], models)";
+				//new House(json['house'], models)
+			} else {
+				line = "      " + name + ": json['" + name + "']";
+			}
 			if (x != dartClass.getFields().size() - 1) {
 				line += ",";
 			}
 			fromJson.add(line);
 		}
 		fromJson.add("      );");
+		fromJson.add("  }");
 		return fromJson;
 	}
 

@@ -1,11 +1,8 @@
 package com.nathanwestlake.dartgenerator.generators;
 
 import com.google.common.collect.Lists;
-import com.nathanwestlake.dartgenerator.models.DartClass;
-import com.nathanwestlake.dartgenerator.models.DartField;
-import com.nathanwestlake.dartgenerator.models.DartType;
+import com.nathanwestlake.dartgenerator.models.DartEntity;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,43 +20,25 @@ public class ClassGenerator {
 			"  String toJsonString() => JSON.encode(this.toJson());",
 			"}"
 	);
-	private MethodGenerator methodGenerator = new MethodGenerator();
+	private static final List<String> MODEL_MAPPER = Lists.newArrayList(
+			"library model_mapper;",
+			"",
+			"import 'dart:convert';",
+			"",
+			"/**",
+			" * This class will create a map of models to their ids. It is used to recreate complex cyclical references from JSON to",
+			" * dart classes. For it to do so, the JSON must be formatted in a specific way, as described here:/",
+			" *",
+			" * http://wiki.fasterxml.com/JacksonFeatureObjectIdentity",
+			" *",
+			" * Every object should contain a property '@id' which contains an integer id that uniquely references that object within",
+			" * the JSON. If that object would appear a second time in the JSON, instead only that integer id should be the value.",
+			"*/",
+			"class ModelMapper {"
+	);
 
-	public List<String> generate(DartClass dartClass, Map<String, DartClass> classMap) {
-		List<String> lines = new ArrayList<String>();
-
-		lines.add("library " + dartClass.getLibraryName() + ";");
-		lines.add("");
-
-		lines.add(dartClass.getImportLine() + "jsonable.dart';");
-		for (DartField field : dartClass.getFields()) {
-			if (field.type == DartType.CLASS || field.type == DartType.ENUM) {
-				DartClass importClass = classMap.get(field.getFieldTypeString());
-				if (importClass != null) {
-					if (!importClass.equals(dartClass)) {
-						lines.add(classMap.get(field.getFieldTypeString()).getImportThisClass());
-					}
-				} else {
-					lines.add("//Could not import field: " + field.getAsString());
-				}
-
-			}
-		}
-		lines.add("");
-
-		lines.add("class " + dartClass.getClassName() + " extends Jsonable {");
-		for (DartField field : dartClass.getFields()) {
-			lines.add(field.getAsString());
-		}
-		lines.add("");
-		lines.addAll(methodGenerator.generateConstructor(dartClass));
-		lines.add("");
-		lines.addAll(methodGenerator.generateJsonConstructor(dartClass));
-		lines.add("");
-		lines.addAll(methodGenerator.generateToJson(dartClass));
-		lines.add("");
-		lines.add("}");
-		return lines;
+	public List<String> generate(DartEntity dartClass, Map<String, DartEntity> classMap) {
+		return dartClass.generate(classMap);
 	}
 
 	public List<String> generateJsonable() {
